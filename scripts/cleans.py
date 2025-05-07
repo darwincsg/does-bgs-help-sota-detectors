@@ -1,34 +1,34 @@
 import os
 
 def clean_txt_of_xml(path):
-    with open(path, "r+") as archivo:
-        linhas = archivo.readlines()      
+    with open(path, "r+") as file:
+        lines = file.readlines()      
         
         new_content = []
         
-        for x in linhas:
+        for x in lines:
             split_string = x.strip().split()
             new_string = f'0 {split_string[1]} {split_string[2]} {split_string[3]} {split_string[4]}\n'
             new_content.append(new_string)
         
-        archivo.seek(0)
-        archivo.writelines(new_content)
-        archivo.truncate()  
+        file.seek(0)
+        file.writelines(new_content)
+        file.truncate()  
         
 def clean_txt_of_yolo(path):
-    with open(path, "r+") as archivo:
-        linhas = archivo.readlines()
+    with open(path, "r+") as file:
+        lines = file.readlines()
 
-        linhas_filtradas = []
-        for x in linhas:
+        filtered_lines = []
+        for x in lines:
             split_string = x.strip().split()
             if split_string[0] == '0':
-                linhas_filtradas.append(x)
+                filtered_lines.append(x)
 
-        # Sobrescribimos el archivo
-        archivo.seek(0)
-        archivo.writelines(linhas_filtradas)
-        archivo.truncate()
+        # Override file
+        file.seek(0)
+        file.writelines(filtered_lines)
+        file.truncate()
         
         
 def clean_directory(path, option):
