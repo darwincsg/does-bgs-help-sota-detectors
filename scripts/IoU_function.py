@@ -62,10 +62,6 @@ def IoU(box1, box2):
 
 
 def compute_iou_matrix(boxes_A, boxes_B):
-    """
-    boxes_A y boxes_B son listas de bounding boxes en formato [x_min, y_min, x_max, y_max]
-    Retorna una matriz (len(A) x len(B)) donde cada celda es el IoU entre una box de A y una de B
-    """
     iou_matrix = np.zeros((len(boxes_A), len(boxes_B)))
 
     for i, box_A in enumerate(boxes_A):
@@ -75,11 +71,8 @@ def compute_iou_matrix(boxes_A, boxes_B):
     return iou_matrix
 
 def match_boxes(iou_matrix, iou_threshold=0.5):
-    """
-    Empareja las boxes en base a IoU usando una heurística greedy.
-    Retorna pares (idx_A, idx_B) y listas de no emparejadas en A y B.
-    """
-    matched_indices = []
+
+    matched_index = []
     used_A = set()
     used_B = set()
 
@@ -101,14 +94,14 @@ def match_boxes(iou_matrix, iou_threshold=0.5):
             break
 
         i, j = max_pair
-        matched_indices.append((i, j))
+        matched_index.append((i, j))
         used_A.add(i)
         used_B.add(j)
 
     unmatched_A = [i for i in range(iou_matrix.shape[0]) if i not in used_A]
     unmatched_B = [j for j in range(iou_matrix.shape[1]) if j not in used_B]
 
-    return matched_indices, unmatched_A, unmatched_B
+    return matched_index, unmatched_A, unmatched_B
 
 def compare_annotations(pathX, pathY, pathFrame):
     image_size = get_image_size(pathFrame)
@@ -135,18 +128,18 @@ def get_Average(path_grand_true, path_annotations, path_frames):
     gt_files = sorted(os.listdir(path_grand_true))
     yolo_files = sorted(os.listdir(path_annotations))
 
-    # Inicializa acumuladores
+    # Init variables
     total_accuracy = 0
     total_files = 0
 
     for gt_file, yolo_file in zip(gt_files, yolo_files):
-        # Crea los paths absolutos
+        # Create the absolute paths
         path_G = os.path.join(path_grand_true, gt_file)
         path_Y = os.path.join(path_annotations, yolo_file)
 
         accuracy = compare_annotations(path_G,path_Y,path_frames)
 
-        # Acumular
+        # Increase variables
         total_accuracy += accuracy
         total_files += 1
 
