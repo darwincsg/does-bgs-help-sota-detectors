@@ -11,9 +11,9 @@ def main(arg_XML, arg_YOLO, arg_Frame):
   
     if archivo_Xml.suffix == ".xml":
         absolute_name = archivo_Xml.stem
-        directory_name = f'/home/darwonl/Escritorio/PROJECT/ACC/Modelos/YOLO/Labels/{absolute_name}'
+        directory_name = f'/home/{absolute_name}'
     else:
-        raise ValueError("El archivo del primer argumento no es un XML válido.")
+        raise ValueError("The file is not a valid XML.")
 
     convert_cvat_xml_to_yolo(arg_XML,directory_name)
 
@@ -31,7 +31,7 @@ if __name__ == "__main__":
     parser = argparse.ArgumentParser(description="Script to obtain the total accuracy of a Yolo annotation")
 
     parser.add_argument("arg1", type=str, help="Grand True path")
-    parser.add_argument("arg2", type=str, help="Yolo annotatio path")
+    parser.add_argument("arg2", type=str, help="Yolo annotation path")
     parser.add_argument("arg3", type=str, help="Frame path")
 
     args = parser.parse_args()
