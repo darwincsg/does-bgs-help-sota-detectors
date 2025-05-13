@@ -1,77 +1,58 @@
 import xml.etree.ElementTree as ET
 import os
-import cv2
 
 def function_on_file(path):
-    with open(path, "r") as file:
-        lines = fike.readlines()        
-        lines.sort()
-        return lines
+    with open(path, "r") as archivo:
+        linhas = archivo.readlines()
+    linhas.sort()
+    return linhas
 
-def get_image_size(image_path):
-    img = cv2.imread(image_path)
-    if img is None:
-        raise FileNotFoundError(f"Could not open frame: {image_path}")
-    height, width = img.shape[:2]
-    return width, height
+def convert_cvat_xml_to_abs(xml_path, output_dir, decimals: int = 2):
+    """
+    Convert a CVAT 1.1 interpolation-format XML file into plain–text files
+    containing *absolute* bounding-box coordinates (xtl  ytl  xbr  ybr).
 
-def convert_cvat_xml_to_yolo(xml_path, output_dir):
+    • One output .txt per frame:  frame_000000.txt, frame_000001.txt, …
+    • Lines inside each file preserve the order they appear in the XML.
+    • No class-ids, no normalisation.
+
+    Parameters
+    ----------
+    xml_path   : str  – path to the CVAT XML annotation.
+    output_dir : str  – folder where the frame_XXXXXX.txt files will be saved.
+    decimals   : int  – number of decimal places to keep (default 2, matching
+                         your example).
+    """
+    # 1️⃣ Parse the XML once
     tree = ET.parse(xml_path)
     root = tree.getroot()
 
-    meta = root.find('meta')
-    width = int(meta.find('original_size/width').text)
-    height = int(meta.find('original_size/height').text)
+    # 2️⃣ Collect all lines per frame
+    frame_dict = {}  # {frame_idx: [ "xtl ytl xbr ybr", … ]}
 
-    label_names = meta.find('job/labels')
-    label_list = [label.find('name').text for label in label_names.findall('label')]
-    label_list = sorted(set(label_list))  # unique & sorted for consistency
-    label_to_class = {label_name: i for i, label_name in enumerate(label_list)}
-
-    frame_dict = {}
-
-    for track in root.findall('track'):
-        label_name = track.get('label')  # e.g. '0497'
-        class_id = label_to_class[label_name]
-
-        # For each box in this track
-        for box in track.findall('box'):
-            outside = int(box.get('outside'))
-            # If outside==1, the object is no longer visible, so skip
-            if outside == 1:
+    for track in root.findall("track"):
+        for box in track.findall("box"):
+            # Skip boxes that are tagged “outside=1”
+            if int(box.get("outside", 0)):
                 continue
 
-            frame_idx = int(box.get('frame'))
-            xtl = float(box.get('xtl'))
-            ytl = float(box.get('ytl'))
-            xbr = float(box.get('xbr'))
-            ybr = float(box.get('ybr'))
+            frame_idx = int(box.get("frame"))
+            xtl = float(box.get("xtl"))
+            ytl = float(box.get("ytl"))
+            xbr = float(box.get("xbr"))
+            ybr = float(box.get("ybr"))
 
-            # Convert to YOLO
-            bbox_width = xbr - xtl
-            bbox_height = ybr - ytl
-            x_center = xtl + bbox_width / 2.0
-            y_center = ytl + bbox_height / 2.0
+            fmt = f"{{:.{decimals}f}} {{:.{decimals}f}} {{:.{decimals}f}} {{:.{decimals}f}}"
+            line = fmt.format(xtl, ytl, xbr, ybr)
 
-            # Normalize [0,1]
-            x_center_norm = x_center / width
-            y_center_norm = y_center / height
-            w_norm = bbox_width / width
-            h_norm = bbox_height / height
+            frame_dict.setdefault(frame_idx, []).append(line)
 
-            yolo_line = f"{class_id} {x_center_norm:.6f} {y_center_norm:.6f} {w_norm:.6f} {h_norm:.6f}"
-
-            # Accumulate the line in frame_dict
-            if frame_idx not in frame_dict:
-                frame_dict[frame_idx] = []
-            frame_dict[frame_idx].append(yolo_line)
-
-    if not os.path.exists(output_dir):
-        os.makedirs(output_dir)
-
+    # 3️⃣ Write out one text file per frame
+    os.makedirs(output_dir, exist_ok=True)
     for frame_idx, lines in frame_dict.items():
-        out_txt_path = os.path.join(output_dir, f"frame_{frame_idx:06d}.txt")
-        with open(out_txt_path, 'w') as f:
+        out_path = os.path.join(output_dir, f"frame_{frame_idx:06d}.txt")
+        with open(out_path, "w") as f:
             f.write("\n".join(lines))
 
-    print(f"Conversion complete! YOLO annotations saved to: {output_dir}")
+    print(f"Conversion complete! Absolute-coordinate annotations saved to: {output_dir}")
+
