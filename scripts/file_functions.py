@@ -23,11 +23,10 @@ def convert_cvat_xml_to_abs(xml_path, output_dir, decimals: int = 2):
     decimals   : int  – number of decimal places to keep (default 2, matching
                          your example).
     """
-    # 1️⃣ Parse the XML once
     tree = ET.parse(xml_path)
     root = tree.getroot()
 
-    # 2️⃣ Collect all lines per frame
+    # Collect all lines per frame
     frame_dict = {}  # {frame_idx: [ "xtl ytl xbr ybr", … ]}
 
     for track in root.findall("track"):
@@ -47,7 +46,7 @@ def convert_cvat_xml_to_abs(xml_path, output_dir, decimals: int = 2):
 
             frame_dict.setdefault(frame_idx, []).append(line)
 
-    # 3️⃣ Write out one text file per frame
+    # Write out one text file per frame
     os.makedirs(output_dir, exist_ok=True)
     for frame_idx, lines in frame_dict.items():
         out_path = os.path.join(output_dir, f"frame_{frame_idx:06d}.txt")

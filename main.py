@@ -1,55 +1,39 @@
-#import argparse
-from ultralytics import YOLO
-from pathlib import Path
 import os
-
-from scripts.file_functions import convert_cvat_xml_to_abs
-from scripts.models import Yolo_predict
+import csv
 from scripts.IoU_function import get_Average
 
+# Directories Path
+ground_truth_root = "./Ground_True"
+annotations_root = "./Annotations"
+output_file = "./Example_output/Results.csv"
 
+common_folders = sorted(set(os.listdir(ground_truth_root)).intersection(set(os.listdir(annotations_root))))
+resultados = []
 
-def build(video_path):
-    video_split = video_path.strip().split('/')
+for folder_name in common_folders:
+    gt_folder = os.path.join(ground_truth_root, folder_name)
+    ann_folder = os.path.join(annotations_root, folder_name,'txt')
 
-    video_file = Path(video_split[len(video_split)-1])
-    absolute_name = video_file.stem
-    
-    model_name = "yolov8x.pt"
-    model = YOLO(model_name)
+    if os.path.isdir(gt_folder) and os.path.isdir(ann_folder):
+        resultados_metricas = get_Average(gt_folder, ann_folder)
+        resultados.append({
+            'Folder': folder_name,
+            **resultados_metricas
+        })
+        print(f'Video {folder_name}: Processed')
 
-    #CREATE XML DIRECTORY AND FILE NAME
-    Xml_Path = f'/home/darwonl/Escritorio/PROJECT/ACC/Modelos/YOLO/Yolov8/xml/{absolute_name}'
-    os.makedirs(Xml_Path, exist_ok=True)
-    Xml_file = f'/home/darwonl/Escritorio/PROJECT/ACC/Modelos/Detection/Outdoor/Outdoor/{absolute_name}.xml'
-    
-    #CREATE YOLO DIRCTORY
-    Yolo_Path = f'/home/darwonl/Escritorio/PROJECT/ACC/Modelos/YOLO/Yolov8/yolo/{absolute_name}'
-    os.makedirs(Yolo_Path, exist_ok=True)
-    
-    #First part, we sent the xml and convert it to txt files on the output dir
-    convert_cvat_xml_to_abs(Xml_file, Xml_Path)
-    
-    #Second part, call Yolo and made the predictions
-    Yolo_predict(model,video_path, Yolo_Path)
-    
-    #Final part, do the comparison!
-    final = get_Average(Xml_Path,Yolo_Path)
-    
-    return final
+# Check if the file already exists
+archivo_existe = os.path.exists(output_file)
 
+# Save in append mode and write header only if file does not exist
+with open(output_file, mode='a', newline='') as csvfile:
+    fieldnames = ['Folder', 'TP', 'FP', 'FN', 'Precision', 'Recall', 'F1']
+    writer = csv.DictWriter(csvfile, fieldnames=fieldnames)
 
-def main():
+    if not archivo_existe:
+        writer.writeheader()
 
-    path_video = '/home/darwonl/Escritorio/PROJECT/ACC/Modelos/Detection/Raw/Raw/099_012_07_05_2024_10_15_SRM_5.8_10_30.MP4'
+    for fila in resultados:
+        writer.writerow(fila)
 
-    final = build(path_video)
-
-    print(final)
-
-
-
-
-
-if __name__ == "__main__":
-    main()
+print(f"Results added to: {output_file}")
