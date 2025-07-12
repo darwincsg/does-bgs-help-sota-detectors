@@ -13,7 +13,7 @@ The main goal is to evaluate the impact of combining *Background Subtraction* (B
 
 ---
 
-## ⚙️ Required Libraries
+## Required Libraries
 
 To run this project, make sure to have the following key Python libraries installed:
 
@@ -26,7 +26,7 @@ To run this project, make sure to have the following key Python libraries instal
 
 ---
 
-## ⚠Important Notice
+## Important Notice
 
 This pipeline critically depends on two major frameworks:
 
