@@ -26,12 +26,12 @@ To run this project, make sure to have the following key Python libraries instal
 
 ---
 
-## ⚠️ Important Notice
+## ⚠Important Notice
 
 This pipeline critically depends on two major frameworks:
 
-1️⃣ **Detectron2 (Meta AI)**  
-2️⃣ **YOLO (Ultralytics)**
+ **Detectron2 (Meta AI)**  
+ **YOLO (Ultralytics)**
 
 > **Note:**  
 Detectron2 requires proper installation and configuration, including matching your `torch` and `CUDA` versions (if using GPU acceleration). Please follow the [official Detectron2 installation guide](https://detectron2.readthedocs.io/) to ensure compatibility.
@@ -41,7 +41,7 @@ YOLOv8 (Ultralytics) should be installed via `pip` (`pip install ultralytics`) t
 
 ---
 
-## ✅ Recommended Installation
+## Recommended Installation
 
 We strongly recommend using a virtual environment (e.g., `conda` or `venv`) to avoid conflicts.  
 Example with **conda** and **CUDA 11.8**:
